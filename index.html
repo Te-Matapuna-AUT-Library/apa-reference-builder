@@ -248,6 +248,8 @@
 
   <div class="note">This tool formats sources that <strong>you</strong> supply. It does not find or invent references. The sources must be real, and you must have read them. The italics show when you paste into your document; apply hanging indents in your word processor. Always check the result against the APA rules and the <a href="https://aut.ac.nz.libguides.com/APA7th" target="_blank" rel="noopener" style="color:#9f1239;text-decoration:underline;">AUT Library APA 7th guide</a>.</div>
 
+  <p id="usageNotice" style="display:none;max-width:74ch;margin:14px 0 0;font-size:12.5px;color:#5b6472;"></p>
+
 </main>
 
 <footer>
@@ -261,6 +263,38 @@
 <script>
 (function(){
   "use strict";
+
+  /* ---------- anonymous, content-free telemetry ----------
+     Set endpoint to your collector to turn this on. Leave blank and the
+     tool runs normally with no events sent. No student-entered text
+     (names, titles, URLs) is ever included in an event; only structured
+     flags and counts. The session id is random per page load and ties to
+     no identity. */
+  var TELEMETRY = {
+    endpoint: '',                 // e.g. 'https://lti-wrapper-xxxx.vercel.app/api/event'
+    tool: 'apa-reference-builder',
+    app_version: '2026-06-01',
+    enabled: true
+  };
+  var SESSION_ID = (function(){
+    try { if(window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch(e){}
+    return 'sid-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
+  })();
+  function emit(eventType, payload){
+    if(!TELEMETRY.enabled || !TELEMETRY.endpoint) return;
+    try{
+      var body = JSON.stringify(Object.assign({
+        tool: TELEMETRY.tool,
+        app_version: TELEMETRY.app_version,
+        session_id: SESSION_ID,
+        ts: new Date().toISOString(),
+        event_type: eventType
+      }, payload || {}));
+      var blob = new Blob([body], {type:'text/plain'}); // text/plain keeps the beacon CORS-simple
+      if(navigator.sendBeacon){ navigator.sendBeacon(TELEMETRY.endpoint, blob); }
+      else { fetch(TELEMETRY.endpoint, {method:'POST', body:body, headers:{'Content-Type':'text/plain'}, keepalive:true}); }
+    }catch(e){ /* never let telemetry break the tool */ }
+  }
 
   /* ---------- field definitions: natural-language input ---------- */
   var TYPES = {
@@ -490,7 +524,7 @@
     if(personCount) notes.push({t:'Formatted '+personCount+' author name'+(personCount>1?'s':'')+' as surname then initials.', kind:'did'});
     if(orgCount) notes.push({t:'Treated '+orgCount+' name'+(orgCount>1?'s':'')+' as an organisation (not inverted). Not right? Re-type it.', kind:'did'});
     if(caseFixed) notes.push({t:'Corrected the capitalisation of '+caseFixed+' name'+(caseFixed>1?'s':'')+'.', kind:'did'});
-    return {text:joined, surnames:out.map(function(o){return o.surname;}), notes:notes};
+    return {text:joined, surnames:out.map(function(o){return o.surname;}), notes:notes, counts:{persons:personCount, orgs:orgCount, caseFixed:caseFixed}};
   }
 
   // editors: initials then surname
@@ -519,25 +553,25 @@
 
   function normaliseDate(raw){
     var d = esc(raw);
-    if(!d) return {text:'', notes:[{t:'No date entered. Add one, or it will read as n.d.', kind:'ask'}], inText:'n.d.'};
-    if(/^n\.?\s?d\.?$/i.test(d) || /^no date$/i.test(d)) return {text:'n.d.', notes:[], inText:'n.d.'};
-    if(/^\d{4}$/.test(d)) return {text:d, notes:[], inText:d};
+    if(!d) return {text:'', notes:[{t:'No date entered. Add one, or it will read as n.d.', kind:'ask'}], inText:'n.d.', reformatted:false};
+    if(/^n\.?\s?d\.?$/i.test(d) || /^no date$/i.test(d)) return {text:'n.d.', notes:[], inText:'n.d.', reformatted:false};
+    if(/^\d{4}$/.test(d)) return {text:d, notes:[], inText:d, reformatted:false};
     // already "Year, Month [Day]"
     var m = /^(\d{4}),?\s+([A-Za-z]+)\.?(?:\s+(\d{1,2}))?$/.exec(d);
-    if(m){ var t=m[1]+', '+capFirst(m[2].toLowerCase())+(m[3]?(' '+m[3]):''); return {text:t, notes: t!==d?[{t:'Read the date as '+t+'.', kind:'did'}]:[], inText:m[1]}; }
+    if(m){ var t=m[1]+', '+capFirst(m[2].toLowerCase())+(m[3]?(' '+m[3]):''); return {text:t, notes: t!==d?[{t:'Read the date as '+t+'.', kind:'did'}]:[], inText:m[1], reformatted:(t!==d)}; }
     // "Month Day, Year" or "Month Year"
     m = /^([A-Za-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})$/.exec(d);
-    if(m){ var t2=m[3]+', '+capFirst(m[1].toLowerCase())+' '+m[2]; return {text:t2, notes:[{t:'Read the date as '+t2+'.', kind:'did'}], inText:m[3]}; }
+    if(m){ var t2=m[3]+', '+capFirst(m[1].toLowerCase())+' '+m[2]; return {text:t2, notes:[{t:'Read the date as '+t2+'.', kind:'did'}], inText:m[3], reformatted:true}; }
     m = /^([A-Za-z]+)\.?\s+(\d{4})$/.exec(d);
-    if(m){ var t3=m[2]+', '+capFirst(m[1].toLowerCase()); return {text:t3, notes:[{t:'Read the date as '+t3+'.', kind:'did'}], inText:m[2]}; }
+    if(m){ var t3=m[2]+', '+capFirst(m[1].toLowerCase()); return {text:t3, notes:[{t:'Read the date as '+t3+'.', kind:'did'}], inText:m[2], reformatted:true}; }
     // "Day Month Year"
     m = /^(\d{1,2})\s+([A-Za-z]+)\.?\s+(\d{4})$/.exec(d);
-    if(m){ var t4=m[3]+', '+capFirst(m[2].toLowerCase())+' '+m[1]; return {text:t4, notes:[{t:'Read the date as '+t4+'.', kind:'did'}], inText:m[3]}; }
+    if(m){ var t4=m[3]+', '+capFirst(m[2].toLowerCase())+' '+m[1]; return {text:t4, notes:[{t:'Read the date as '+t4+'.', kind:'did'}], inText:m[3], reformatted:true}; }
     // ISO
     m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
-    if(m){ var mo=MONTHS[parseInt(m[2],10)-1]; var t5=m[1]+', '+mo+' '+parseInt(m[3],10); return {text:t5, notes:[{t:'Read the date as '+t5+'.', kind:'did'}], inText:m[1]}; }
+    if(m){ var mo=MONTHS[parseInt(m[2],10)-1]; var t5=m[1]+', '+mo+' '+parseInt(m[3],10); return {text:t5, notes:[{t:'Read the date as '+t5+'.', kind:'did'}], inText:m[1], reformatted:true}; }
     var yr = (d.match(/\d{4}/)||[''])[0];
-    return {text:d, notes:[{t:'Kept the date as you typed it. Check the format (Year, or Year, Month Day).', kind:'ask'}], inText: yr||d};
+    return {text:d, notes:[{t:'Kept the date as you typed it. Check the format (Year, or Year, Month Day).', kind:'ask'}], inText: yr||d, reformatted:false};
   }
 
   function endsSentence(s){ return /[?!.]$/.test(esc(s)); }
@@ -550,8 +584,11 @@
     function need(label, val){ if(!esc(val)) prompts.push('Add the '+label.toLowerCase()+'.'); }
 
     var sortKey='', primarySurname='', inTextAuthor='', inTextNar='';
+    var meta = {sourceType:type, allCapsFixed:false, sentenceCaseApplied:false, dateReformatted:false, doiFormatted:false, names:0, orgs:0, namesCaseFixed:0};
+    function done(r){ r.meta = meta; r.promptsCount = (r.prompts||[]).length; return r; }
     var date = normaliseDate(v.year);
     notes = notes.concat(date.notes);
+    meta.dateReformatted = !!date.reformatted;
 
     // sentence case for flagged fields
     var titleVal = esc(v.title);
@@ -561,7 +598,7 @@
           if(v['_sc_'+f.k]!==false){
             var r = toSentenceCase(titleVal);
             titleVal = r.text;
-            if(r.changed) notes.push({t:(r.allCaps?'Corrected ALL CAPS and set the title to sentence case. ':'Set the title to sentence case. ')+'Check that names and places stayed capitalised; turn off auto sentence case if not.', kind:'did'});
+            if(r.changed){ meta.sentenceCaseApplied = true; if(r.allCaps) meta.allCapsFixed = true; notes.push({t:(r.allCaps?'Corrected ALL CAPS and set the title to sentence case. ':'Set the title to sentence case. ')+'Check that names and places stayed capitalised; turn off auto sentence case if not.', kind:'did'}); }
           }
         }
       });
@@ -582,12 +619,13 @@
       var lm = /^(.*\S)\s+(\d{4})\s*$/.exec(legt.text);
       if(lm){ inTextAuthor='('+lm[1]+', '+lm[2]+')'; inTextNar=lm[1]+' ('+lm[2]+')'; sortKey=lm[1].toLowerCase(); }
       else { sortKey = legt.text.toLowerCase(); inTextAuthor='('+legt.text+')'; inTextNar=legt.text; }
-      return assemble(segs, notes, prompts, sortKey, inTextAuthor, inTextNar);
+      return done(assemble(segs, notes, prompts, sortKey, inTextAuthor, inTextNar));
     }
 
     // authors
     var auth = formatAuthorsRef(v.author, def.author==='orgable'?'orgable':'person');
     notes = notes.concat(auth.notes);
+    if(auth.counts){ meta.names=auth.counts.persons; meta.orgs=auth.counts.orgs; meta.namesCaseFixed=auth.counts.caseFixed; }
     if(auth.text){
       seg(auth.text, 'author');
       seg(endsSentence(auth.text)?' ':'. ', null);
@@ -615,9 +653,9 @@
       var pg = fmtPages(v.pages);
       seg(pg?(', '+pg+'.'):'.', 'source', false);
       var doi = fmtDoi(v.doi);
-      if(doi){ seg(' ', null); seg(doi, 'source'); if(doi!==esc(v.doi)) notes.push({t:'Formatted the DOI as a full link.', kind:'did'}); }
+      if(doi){ seg(' ', null); seg(doi, 'source'); if(doi!==esc(v.doi)){ meta.doiFormatted=true; notes.push({t:'Formatted the DOI as a full link.', kind:'did'}); } }
       if(!sortKey) sortKey = primarySurname;
-      return assemble(segs, notes, prompts, sortKey||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText);
+      return done(assemble(segs, notes, prompts, sortKey||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText));
     }
 
     if(type==='chapter'){
@@ -631,8 +669,8 @@
       seg('.', 'source', false);
       if(esc(v.publisher)){ var pubc=fixSourceCase(v.publisher,'title',false); seg(' ', null); seg(pubc.text+'.', 'source'); }
       var cdoi = fmtDoi(v.doi);
-      if(cdoi){ seg(' ', null); seg(cdoi, 'source'); }
-      return assemble(segs, notes, prompts, sortKey||primarySurname||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText);
+      if(cdoi){ seg(' ', null); seg(cdoi, 'source'); if(cdoi!==esc(v.doi)) meta.doiFormatted=true; }
+      return done(assemble(segs, notes, prompts, sortKey||primarySurname||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText));
     }
 
     // book / webpage / report / image / video: italic work title
@@ -664,7 +702,7 @@
       if(esc(v.platform)){ seg(' ', null); seg(fixSourceCase(v.platform,'title',true).text+'.', 'source'); }
       if(esc(v.url)){ seg(' ', null); seg(esc(v.url), 'source'); }
     }
-    return assemble(segs, notes, prompts, sortKey||primarySurname||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText);
+    return done(assemble(segs, notes, prompts, sortKey||primarySurname||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText));
   }
 
   function assemble(segs, notes, prompts, sortKey, itAuthor, itNar, yearShort){
@@ -766,7 +804,7 @@
       if(f.sc){
         var sc=document.createElement('label'); sc.className='scrow';
         var cb=document.createElement('input'); cb.type='checkbox'; cb.checked = state.values['_sc_'+f.k]!==false; cb.id='sc_'+f.k;
-        cb.addEventListener('change', function(){ state.values['_sc_'+f.k]=cb.checked; update(); });
+        cb.addEventListener('change', function(){ state.values['_sc_'+f.k]=cb.checked; update(); emit('sentence_case_toggled', {source_type:state.type, sentence_case_on:cb.checked}); });
         sc.appendChild(cb); sc.appendChild(document.createTextNode('Auto sentence case'));
         wrap.appendChild(sc);
       }
@@ -807,11 +845,12 @@
         });
         renderFields();
         list.splice(idx,1); renderList();
+        emit('reference_edited', {source_type:item.type, references_in_list:list.length});
         window.scrollTo({top:0, behavior:'smooth'});
       });
       var rem=document.createElement('button'); rem.type='button'; rem.textContent='Remove';
       rem.setAttribute('aria-label','Remove this reference from the list');
-      rem.addEventListener('click', function(){ list.splice(idx,1); renderList(); elListMsg.textContent='Reference removed.'; setTimeout(function(){elListMsg.textContent='';},1500); });
+      rem.addEventListener('click', function(){ var st=item.type; list.splice(idx,1); renderList(); emit('reference_removed', {source_type:st, references_in_list:list.length}); elListMsg.textContent='Reference removed.'; setTimeout(function(){elListMsg.textContent='';},1500); });
       tools.appendChild(edit); tools.appendChild(rem);
       row.appendChild(ref); row.appendChild(tools);
       elListBody.appendChild(row);
@@ -821,7 +860,7 @@
   }
 
   Array.prototype.forEach.call(document.querySelectorAll('.typebar button'), function(b){
-    b.addEventListener('click', function(){ setType(b.getAttribute('data-type')); });
+    b.addEventListener('click', function(){ var t=b.getAttribute('data-type'); setType(t); emit('source_type_selected', {source_type:t}); });
   });
 
   elAdd.addEventListener('click', function(){
@@ -829,6 +868,20 @@
     if(!r.plain || !esc(state.values.title)) return;
     list.push({type:state.type, values:JSON.parse(JSON.stringify(state.values)), segs:r.segs, plain:r.plain, sortKey:r.sortKey});
     renderList();
+    var m = r.meta || {};
+    emit('reference_added', {
+      source_type: state.type,
+      all_caps_fixed: !!m.allCapsFixed,
+      sentence_case_applied: !!m.sentenceCaseApplied,
+      sentence_case_on: state.values['_sc_title'] !== false,
+      date_reformatted: !!m.dateReformatted,
+      doi_formatted: !!m.doiFormatted,
+      author_names: m.names || 0,
+      org_authors: m.orgs || 0,
+      names_case_fixed: m.namesCaseFixed || 0,
+      prompts_count: (r.prompts || []).length,
+      references_in_list: list.length
+    });
     elAddMsg.textContent='Added to your list.';
     setTimeout(function(){elAddMsg.textContent='';},1800);
     state.values={}; renderFields();
@@ -838,11 +891,12 @@
 
   elClearList.addEventListener('click', function(){
     if(!list.length) return;
-    list.length=0; renderList(); elListMsg.textContent='List cleared.'; setTimeout(function(){elListMsg.textContent='';},1500);
+    var n=list.length; list.length=0; renderList(); emit('list_cleared', {references_in_list:n}); elListMsg.textContent='List cleared.'; setTimeout(function(){elListMsg.textContent='';},1500);
   });
 
   elCopyList.addEventListener('click', function(){
     if(!list.length) return;
+    emit('list_copied', {copied_count:list.length, references_in_list:list.length});
     var plain = list.map(function(i){return i.plain;}).join('\n\n');
     var html = '<div>'+list.map(function(i){
       return '<p style="padding-left:2.2em;text-indent:-2.2em;margin:0 0 .6em;">'+refToHtml(i.segs)+'</p>';
@@ -861,6 +915,11 @@
   }
 
   setType('book');
+  if(TELEMETRY.enabled && TELEMETRY.endpoint){
+    var un = document.getElementById('usageNotice');
+    if(un){ un.textContent = 'This tool records anonymous usage to help improve it. It logs which actions you take and which formatting corrections were applied, never the names, titles, or URLs you type. No login or identity is attached.'; un.style.display='block'; }
+  }
+  emit('session_start', {});
 })();
 </script>
 </body>
