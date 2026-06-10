@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APA 7 Reference List Builder | AUT Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14181f; --muted:#5b6472; --paper:#faf9f6; --card:#ffffff; --line:#e4e2dc;
+    --blue:#1d4ed8; --green:#0d7a5f; --amber:#b45309; --purple:#6d28d9; --rose:#be185d;
+    --r1:#ef4444; --r2:#f97316; --r3:#eab308; --r4:#22c55e; --r5:#3b82f6; --r6:#8b5cf6;
+    --masthead:#0f1722;
+    --display:'Fraunces',Georgia,'Times New Roman',serif;
+    --body:'Public Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px;}
+  a{color:var(--blue);}
+  a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #2563eb;outline-offset:2px;}
+  .skip{position:absolute;left:-9999px;top:0;background:var(--ink);color:#fff;padding:10px 16px;z-index:50;}
+  .skip:focus{left:8px;top:8px;}
+
+  .rainbow{display:grid;grid-template-columns:repeat(6,1fr);width:100%;}
+  .rainbow span{height:10px;}
+  .rainbow span:nth-child(1){background:var(--r1);}
+  .rainbow span:nth-child(2){background:var(--r2);}
+  .rainbow span:nth-child(3){background:var(--r3);}
+  .rainbow span:nth-child(4){background:var(--r4);}
+  .rainbow span:nth-child(5){background:var(--r5);}
+  .rainbow span:nth-child(6){background:var(--r6);}
+
+  header.mast{background:var(--masthead);color:#fff;}
+  .mast-inner{padding:40px 20px 34px;max-width:1120px;margin:0 auto;}
+  .kicker{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#9fb0c6;margin:0 0 12px;}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(30px,5vw,50px);line-height:1.03;margin:0 0 14px;letter-spacing:-.01em;}
+  .lede{font-size:clamp(16px,2vw,19px);color:#d7dee8;max-width:70ch;margin:0;line-height:1.5;}
+
+  main{padding:34px 0 10px;}
+  .howto{display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;margin:0 0 26px;}
+  .howto .step{display:flex;align-items:baseline;gap:8px;font-size:14px;color:var(--muted);}
+  .howto .num{font-family:var(--display);font-weight:700;font-size:18px;color:var(--ink);}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px;}
+  .legc{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:5px 11px;border:1px solid var(--line);background:#fff;}
+  .legc .dot{width:11px;height:11px;border-radius:2px;}
+  .dot.author{background:var(--blue);} .dot.year{background:var(--green);}
+  .dot.title{background:var(--amber);} .dot.source{background:var(--purple);}
+
+  .framing{margin:0 0 30px;}
+  .framing h2{font-family:var(--display);font-weight:600;font-size:clamp(22px,3vw,28px);margin:0 0 4px;}
+  .framing .sub{color:var(--muted);margin:0 0 18px;max-width:68ch;}
+  .elcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 16px;}
+  .el{padding:16px;color:#fff;}
+  .el .n{font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.92;margin:0 0 4px;}
+  .el .q{font-family:var(--display);font-size:21px;font-weight:600;margin:0 0 6px;line-height:1.1;}
+  .el p{margin:0;font-size:13.5px;line-height:1.45;color:#fff;}
+  .el.author{background:var(--blue);} .el.year{background:var(--green);}
+  .el.title{background:var(--amber);} .el.source{background:var(--purple);}
+  .anatomy-lab{font-size:13px;color:var(--muted);margin:0 0 7px;}
+  .anatomy{background:#fbfaf7;border:1px solid var(--line);padding:15px 17px;font-size:15.5px;line-height:1.95;}
+  .anatomy .seg{padding:1px 1px;}
+  .anatomy .seg-author{background:#dbeafe;border-bottom:2px solid var(--blue);}
+  .anatomy .seg-year{background:#dcfce7;border-bottom:2px solid var(--green);}
+  .anatomy .seg-title{background:#fef3c7;border-bottom:2px solid var(--amber);}
+  .anatomy .seg-source{background:#ede9fe;border-bottom:2px solid var(--purple);}
+  .steplabel{font-size:14px;font-weight:700;color:var(--ink);margin:0 0 9px;display:flex;align-items:center;gap:9px;}
+  .steplabel .b{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;background:var(--ink);color:#fff;font-size:12px;border-radius:50%;flex:none;}
+
+  .builder{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start;}
+  .panel{background:var(--card);border:1px solid var(--line);}
+  .panel .bar{height:6px;}
+  .panel .body{padding:20px;}
+  h2{font-family:var(--display);font-weight:600;font-size:22px;margin:0 0 4px;}
+  .panel .body > p.intro{margin:0 0 16px;font-size:14px;color:var(--muted);}
+
+  .typebar{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 18px;}
+  .typebar button{font-family:var(--body);font-size:13.5px;font-weight:600;padding:7px 12px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;}
+  .typebar button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .field{margin:0 0 15px;}
+  .field label{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin:0 0 5px;}
+  .field label .dot{width:11px;height:11px;flex:none;border-radius:2px;}
+  .field .opt{font-weight:400;color:var(--muted);font-size:12px;}
+  .field input, .field textarea{width:100%;padding:10px 12px;font-family:var(--body);font-size:15px;border:1px solid #c8ccd4;background:#fff;color:var(--ink);}
+  .field textarea{min-height:62px;resize:vertical;line-height:1.45;}
+  .field input::placeholder,.field textarea::placeholder{color:#9aa2ad;}
+  .field .hint{margin:5px 0 0;font-size:12.5px;color:var(--muted);}
+  .scrow{display:flex;align-items:center;gap:7px;margin:6px 0 0;font-size:12.5px;color:var(--muted);}
+  .scrow input{width:auto;}
+
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
+  .btn{font-family:var(--body);font-weight:600;font-size:14px;padding:9px 16px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;}
+  .btn.ghost{background:#fff;color:var(--ink);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+
+  .preview .label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 8px;}
+  .out{background:#fbfaf7;border:1px solid var(--line);padding:15px 17px;font-size:16px;line-height:1.85;min-height:58px;}
+  .out .seg-author{background:#dbeafe;border-bottom:2px solid var(--blue);}
+  .out .seg-year{background:#dcfce7;border-bottom:2px solid var(--green);}
+  .out .seg-title{background:#fef3c7;border-bottom:2px solid var(--amber);}
+  .out .seg-source{background:#ede9fe;border-bottom:2px solid var(--purple);}
+  .notes{margin:14px 0 0;}
+  .notes ul{margin:6px 0 0;padding:0;list-style:none;}
+  .notes li{font-size:13px;padding:6px 10px;margin:0 0 5px;border-left:3px solid;line-height:1.4;}
+  .notes li.did{background:#f0f6ff;border-color:var(--blue);color:#1e3a8a;}
+  .notes li.ask{background:#fffaf0;border-color:var(--amber);color:#7c2d12;}
+  .notes .lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:12px 0 0;}
+  .intext{margin:14px 0 0;}
+  .intext .row{background:#fbfaf7;border:1px solid var(--line);padding:9px 12px;margin:0 0 7px;font-size:14px;}
+  .intext .row b{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 2px;}
+  .addrow{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap;}
+  .msg{font-size:13px;color:var(--green);font-weight:600;}
+
+  .listsec{margin:30px 0 0;}
+  .listhead{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin:0 0 12px;}
+  .listhead h2{font-size:24px;}
+  .listhead .count{font-size:13px;color:var(--muted);}
+  .reflist{background:var(--card);border:1px solid var(--line);}
+  .reflist .rbar{height:6px;}
+  .reflist .rbody{padding:8px 20px;}
+  .refitem{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--line);}
+  .refitem:last-child{border-bottom:none;}
+  .refitem .ref{flex:1;font-size:15.5px;line-height:1.7;padding-left:2.2em;text-indent:-2.2em;}
+  .refitem .tools{display:flex;gap:6px;flex:none;}
+  .refitem .tools button{font-size:12px;font-weight:600;padding:5px 9px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;}
+  .empty{padding:26px 0;color:var(--muted);font-size:15px;}
+  .listactions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 20px;border-top:1px solid var(--line);}
+  .savednote{font-size:12px;color:var(--muted);}
+  .note{background:#fff1f2;border:1px solid #fecdd3;border-left:4px solid var(--rose);padding:12px 14px;margin:24px 0 0;font-size:13.5px;color:#9f1239;}
+
+  footer{background:var(--masthead);color:#c9d3df;margin-top:40px;}
+  footer .wrap{padding:26px 20px 32px;text-align:center;}
+  footer a{color:#9fc1ff;}
+  footer .fine{font-size:12.5px;color:#8794a6;max-width:74ch;margin:10px auto 0;line-height:1.6;}
+  .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+
+  @media (max-width:700px){
+    .builder{grid-template-columns:1fr;}
+  }
+  @media (max-width:680px){
+    .elcards{grid-template-columns:1fr 1fr;}
+  }
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} *{transition:none!important;} }
+</style>
+</head>
+<body>
+<a href="#main" class="skip">Skip to main content</a>
+
+<header class="mast">
+  <div class="rainbow" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="mast-inner">
+    <p class="kicker">AUT Library &middot; <span lang="mi">Te Mātāpuna</span></p>
+    <h1>APA&nbsp;7 reference list builder</h1>
+    <p class="lede">Type what you know about a real source in plain words. The tool formats it as APA 7, shows you what it changed, and asks for anything missing. Add each source to build a finished, alphabetised reference list.</p>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+
+  <div class="howto" aria-label="How to use this tool">
+    <div class="step"><span class="num">1</span><span>Pick the source type</span></div>
+    <div class="step"><span class="num">2</span><span>Type the details as you have them</span></div>
+    <div class="step"><span class="num">3</span><span>Check the notes, fill any gaps</span></div>
+    <div class="step"><span class="num">4</span><span>Add it to your reference list</span></div>
+  </div>
+
+  <section class="framing" aria-labelledby="framing-h">
+    <h2 id="framing-h">The four elements of every APA reference</h2>
+    <p class="sub">Every APA reference is built from the same four parts. Learn to spot them in your source and the tool will format them for you. Start by choosing what kind of source you have, because a book, a journal article, and a web page each need slightly different details, and the tool shows you which.</p>
+    <div class="elcards">
+      <div class="el author"><p class="n">1. Author</p><p class="q">Who wrote it?</p><p>A person or an organisation. The tool inverts names for you, so Ranginui Walker becomes Walker, R.</p></div>
+      <div class="el year"><p class="n">2. Year</p><p class="q">When was it published?</p><p>Usually a single year, like (2004). Use n.d. when there is no date.</p></div>
+      <div class="el title"><p class="n">3. Title</p><p class="q">What is it called?</p><p>Set in sentence case. Only the first word and any names take a capital.</p></div>
+      <div class="el source"><p class="n">4. Source</p><p class="q">Where is it found?</p><p>The publisher, journal, DOI, or URL that lets a reader locate it.</p></div>
+    </div>
+    <p class="anatomy-lab">Here is how the four parts look in a finished reference. The same colours appear in the tool below.</p>
+    <div class="anatomy">
+      <span class="seg seg-author">Rameka, L.</span> <span class="seg seg-year">(2017).</span> <span class="seg seg-title">Whakapapa: A <span lang="mi">Māori</span> way of knowing and being in the world.</span> <span class="seg seg-source">In M. A. Peters (Ed.), <em>Encyclopedia of educational philosophy and theory</em>. Springer. https://doi.org/10.1007/978-981-287-588-4_479</span>
+    </div>
+  </section>
+
+  <div class="builder">
+    <div class="panel">
+      <div class="rainbow bar" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="body">
+        <h2>Enter a source</h2>
+        <p class="intro">You do not need to format anything. Type names, titles, and dates as they appear.</p>
+        <p class="steplabel"><span class="b" aria-hidden="true">1</span>Choose the source type</p>
+        <div class="typebar" role="group" aria-label="Source type">
+          <button type="button" data-type="book" aria-pressed="true">Book</button>
+          <button type="button" data-type="journal" aria-pressed="false">Journal article</button>
+          <button type="button" data-type="chapter" aria-pressed="false">Book chapter</button>
+          <button type="button" data-type="webpage" aria-pressed="false">Web page</button>
+          <button type="button" data-type="news" aria-pressed="false">News article</button>
+          <button type="button" data-type="report" aria-pressed="false">Report</button>
+          <button type="button" data-type="image" aria-pressed="false">Image / artwork</button>
+          <button type="button" data-type="legislation" aria-pressed="false">Legislation (NZ)</button>
+          <button type="button" data-type="video" aria-pressed="false">Video</button>
+        </div>
+        <p class="steplabel"><span class="b" aria-hidden="true">2</span>Enter the details, as you have them</p>
+        <div id="fields"></div>
+      </div>
+    </div>
+
+    <div class="panel preview">
+      <div class="rainbow bar" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="body">
+        <p class="label">Formatted reference</p>
+        <div class="out" id="out" aria-live="polite"></div>
+
+        <div class="intext">
+          <p class="label">In-text citation</p>
+          <div class="row"><b>Parenthetical</b><span id="itPar">&mdash;</span></div>
+          <div class="row"><b>Author-prominent</b><span id="itNar">&mdash;</span></div>
+        </div>
+
+        <div class="notes" id="notes" aria-live="polite"></div>
+
+        <div class="addrow">
+          <button type="button" class="btn" id="addBtn">Add to reference list</button>
+          <button type="button" class="btn ghost" id="clearBtn">Clear fields</button>
+          <span class="msg" id="addMsg" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="listsec" aria-labelledby="list-h">
+    <div class="listhead">
+      <div>
+        <h2 id="list-h">Your reference list</h2>
+        <p class="count" id="listCount">No sources added yet.</p>
+      </div>
+    </div>
+    <div class="reflist">
+      <div class="rainbow rbar" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="rbody" id="listBody" aria-live="polite">
+        <p class="empty">Sources you add appear here in alphabetical order, with hanging indents.</p>
+      </div>
+      <div class="listactions">
+        <button type="button" class="btn" id="copyList" disabled>Copy reference list</button>
+        <button type="button" class="btn ghost" id="clearList" disabled>Clear list</button>
+        <span class="msg" id="listMsg" role="status" aria-live="polite"></span>
+        <span class="savednote" id="savedNote" style="display:none;">Your list saves automatically in this browser, on this device.</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="note">This tool formats sources that <strong>you</strong> supply. It does not find or invent references. The sources must be real, and you must have read them. The italics show when you paste into your document; apply hanging indents in your word processor. Always check the result against the APA rules and the <a href="https://aut.ac.nz.libguides.com/APA7th" target="_blank" rel="noopener" style="color:#9f1239;text-decoration:underline;">AUT Library APA 7th guide</a>.</div>
+
+  <p id="usageNotice" style="display:none;max-width:74ch;margin:14px 0 0;font-size:12.5px;color:#5b6472;"></p>
+
+</main>
+
+<footer>
+  <div class="rainbow" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="wrap">
+    <p style="margin:0;font-size:14px;"><a href="https://aut.ac.nz.libguides.com/APA7th" target="_blank" rel="noopener">AUT Library APA 7th edition guide</a> (opens in a new tab)</p>
+    <p class="fine">Designed and built collaboratively using generative AI (Claude, Anthropic) as a development aid. Reference formatting was checked by AUT Library staff against the APA Publication Manual (7th ed.). The builder formats details you supply and does not retrieve or invent sources.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- anonymous, content-free telemetry ----------
+     Set endpoint to your collector to turn this on. Leave blank and the
+     tool runs normally with no events sent. No student-entered text
+     (names, titles, URLs) is ever included in an event; only structured
+     flags and counts. The session id is random per page load and ties to
+     no identity. */
+  var TELEMETRY = {
+    endpoint: '',                 // e.g. 'https://lti-wrapper-xxxx.vercel.app/api/event'
+    tool: 'apa-reference-builder',
+    app_version: '2026-06-10',
+    enabled: true
+  };
+  var SESSION_ID = (function(){
+    try { if(window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch(e){}
+    return 'sid-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
+  })();
+  function emit(eventType, payload){
+    if(!TELEMETRY.enabled || !TELEMETRY.endpoint) return;
+    try{
+      var body = JSON.stringify(Object.assign({
+        tool: TELEMETRY.tool,
+        app_version: TELEMETRY.app_version,
+        session_id: SESSION_ID,
+        ts: new Date().toISOString(),
+        event_type: eventType
+      }, payload || {}));
+      var blob = new Blob([body], {type:'text/plain'}); // text/plain keeps the beacon CORS-simple
+      if(navigator.sendBeacon){ navigator.sendBeacon(TELEMETRY.endpoint, blob); }
+      else { fetch(TELEMETRY.endpoint, {method:'POST', body:body, headers:{'Content-Type':'text/plain'}, keepalive:true}); }
+    }catch(e){ /* never let telemetry break the tool */ }
+  }
+
+  /* ---------- field definitions: natural-language input ---------- */
+  var TYPES = {
+    book: { author:'person', fields:[
+      {k:'author', el:'author', label:'Author(s)', area:true, ph:'Ranginui Walker', hint:'One author per line. Type names normally, e.g. Ranginui Walker or Walker, Ranginui.'},
+      {k:'year', el:'year', label:'Year', ph:'2004'},
+      {k:'title', el:'title', label:'Title', sc:true, ph:'Ka whawhai tonu matou: Struggle without end', hint:'Type it as it appears. The tool sets sentence case.'},
+      {k:'edition', el:'title', label:'Edition', opt:true, ph:'2nd ed.'},
+      {k:'publisher', el:'source', label:'Publisher', ph:'Penguin Books'}
+    ]},
+    journal: { author:'person', fields:[
+      {k:'author', el:'author', label:'Author(s)', area:true, ph:'Jill Poulston\nAlbert Yiu', hint:'One author per line. Include middle initials if the source shows them.'},
+      {k:'year', el:'year', label:'Year', ph:'2011'},
+      {k:'title', el:'title', label:'Article title', sc:true, ph:'Profit or principles: Why do restaurants serve organic food?'},
+      {k:'journal', el:'source', label:'Journal name', ph:'International Journal of Hospitality Management', hint:'Journal names keep their capitals.'},
+      {k:'volume', el:'source', label:'Volume', ph:'30'},
+      {k:'issue', el:'source', label:'Issue', opt:true, ph:'1'},
+      {k:'pages', el:'source', label:'Pages', ph:'184-191'},
+      {k:'doi', el:'source', label:'DOI', opt:true, ph:'10.1016/j.ijhm.2010.04.004', hint:'Paste the DOI or link. It will be formatted as https://doi.org/...'}
+    ]},
+    chapter: { author:'person', fields:[
+      {k:'author', el:'author', label:'Chapter author(s)', area:true, ph:'Lesley Rameka'},
+      {k:'year', el:'year', label:'Year', ph:'2017'},
+      {k:'title', el:'title', label:'Chapter title', sc:true, ph:'Whakapapa: A Māori way of knowing and being in the world'},
+      {k:'editor', el:'source', label:'Editor(s)', area:true, ph:'Michael A. Peters', hint:'One editor per line. Type normally; the tool formats as initials then surname.'},
+      {k:'booktitle', el:'source', label:'Book title', sc:true, ph:'Encyclopedia of educational philosophy and theory'},
+      {k:'pages', el:'source', label:'Pages', opt:true, ph:'45-58'},
+      {k:'publisher', el:'source', label:'Publisher', ph:'Springer'},
+      {k:'doi', el:'source', label:'DOI', opt:true, ph:'10.1007/978-981-287-588-4_479'}
+    ]},
+    webpage: { author:'orgable', fields:[
+      {k:'author', el:'author', label:'Author or organisation', area:true, ph:'WorkSafe New Zealand', hint:'A person, or an organisation. One per line.'},
+      {k:'year', el:'year', label:'Date', ph:'2023', hint:'Year, or a fuller date like 5 March 2023. Leave blank for no date.'},
+      {k:'title', el:'title', label:'Page title', sc:true, ph:'Introduction to the Health and Safety at Work Act 2015: special guide'},
+      {k:'site', el:'source', label:'Site name', opt:true, ph:'WorkSafe New Zealand', hint:'Leave blank if the site name is the same as the author.'},
+      {k:'url', el:'source', label:'URL', ph:'https://www.worksafe.govt.nz/...'}
+    ]},
+    news: { author:'orgable', fields:[
+      {k:'author', el:'author', label:'Author(s) or news organisation', area:true, ph:'Eloise Gibson', hint:'The journalist if one is named, otherwise the news organisation. One per line.'},
+      {k:'year', el:'year', label:'Date', ph:'2025, March 14', hint:'Use the full date if the article shows it: Year, Month Day.'},
+      {k:'title', el:'title', label:'Article title', sc:true, ph:'Fishing industry pushes back on new trawling rules'},
+      {k:'newspaper', el:'source', label:'Newspaper or news site', ph:'The New Zealand Herald', hint:'Keeps its capitals and appears in italics.'},
+      {k:'url', el:'source', label:'URL', ph:'https://www.nzherald.co.nz/...'}
+    ]},
+    report: { author:'orgable', fields:[
+      {k:'author', el:'author', label:'Author or organisation', area:true, ph:'Sanford Limited'},
+      {k:'year', el:'year', label:'Date', ph:'2025'},
+      {k:'title', el:'title', label:'Report title', sc:true, ph:'Sustainability report FY25'},
+      {k:'reportno', el:'source', label:'Report number', opt:true, ph:'Report No. 12'},
+      {k:'url', el:'source', label:'URL', ph:'https://www.sanford.co.nz/...'}
+    ]},
+    image: { author:'person', fields:[
+      {k:'author', el:'author', label:'Artist', area:true, ph:'Charles Frederick Goldie'},
+      {k:'year', el:'year', label:'Year', ph:'1905'},
+      {k:'title', el:'title', label:'Title of work', sc:true, ph:"All 'e same t'e pakeha [Te Aho-o-te-Rangi Wharepu, Ngāti Mahuta]", hint:'Names within the title stay capitalised. Turn off auto sentence case if needed.'},
+      {k:'medium', el:'title', label:'Medium', ph:'Oil on canvas', hint:'Goes in square brackets after the title.'},
+      {k:'source', el:'source', label:'Gallery or source', ph:'Dunedin Public Art Gallery, Dunedin, New Zealand'},
+      {k:'url', el:'source', label:'URL', opt:true, ph:'https://collection.dunedin.art.museum/objects/554'}
+    ]},
+    legislation: { author:'none', fields:[
+      {k:'title', el:'title', label:'Title of Act (with its year)', sc:false, ph:'Health and Safety at Work Act 2015', hint:'Acts keep their capitals. The year is part of the title.'},
+      {k:'jurisdiction', el:'source', label:'Jurisdiction', ph:'NZ'},
+      {k:'url', el:'source', label:'URL', opt:true, ph:'https://www.legislation.govt.nz/...'}
+    ]},
+    video: { author:'orgable', fields:[
+      {k:'author', el:'author', label:'Author or channel', area:true, ph:'Chimamanda Ngozi Adichie'},
+      {k:'year', el:'year', label:'Date', ph:'2009, October 7'},
+      {k:'title', el:'title', label:'Title of video', sc:true, ph:'The danger of a single story'},
+      {k:'platform', el:'source', label:'Platform', ph:'TED'},
+      {k:'url', el:'source', label:'URL', ph:'https://www.ted.com/talks/...'}
+    ]}
+  };
+
+  /* ---------- helpers ---------- */
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var PROPER_WORDS = ['Māori','Maori','Pākehā','Pakeha','Aotearoa','Waitangi','Pasifika','Tāmaki','English'].concat(MONTHS);
+  var PROPER_CANON = {'maori':'Māori','māori':'Māori','pakeha':'Pākehā','pākehā':'Pākehā'};
+  var PROPER_PHRASES = ['New Zealand','Te Tiriti','Treaty of Waitangi','United Nations','United States'];
+  var ORG_HINTS = /\b(University|College|Institute|Bank|Ministry|Department|Office|Commission|Authority|Council|Society|Association|Foundation|Trust|Centre|Center|Organi[sz]ation|Government|Agency|Group|Limited|Ltd|Inc\.?|Company|Corporation|Board|Service|Services|School|Hospital|Library|Museum|Gallery|Press|Network|Committee|Zealand|Nations|States|Union|Aotearoa|Herald|News|Times|Post|Radio|Media|Stuff|Spinoff|Newsroom|RNZ|NZME)\b/;
+  var PARTICLES = ['van','von','der','den','de','del','della','di','da','dos','du','la','le','bin','al'];
+
+  function esc(s){ return (s||'').trim(); }
+  function capFirst(w){ if(!w) return w; return w.charAt(0).toUpperCase()+w.slice(1); }
+  function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+  // ---- case detection and correction (APA 7) ----
+  function isAllCaps(s){ s=s||''; var L=s.replace(/[^\p{L}]/gu,''); return L.length>=2 && s===s.toUpperCase() && s!==s.toLowerCase(); }
+  function isAllLower(s){ s=s||''; var L=s.replace(/[^\p{L}]/gu,''); return L.length>=2 && s===s.toLowerCase() && s!==s.toUpperCase(); }
+  function miscased(s){ return isAllCaps(s)||isAllLower(s); }
+  var MINOR = ['a','an','and','as','at','but','by','for','if','in','nor','of','off','on','or','per','so','the','to','up','via','vs','vs.','yet'];
+  function toTitleCase(raw){
+    var words = esc(raw).toLowerCase().split(/\s+/);
+    var afterColon = false;
+    var out = words.map(function(w,i){
+      var bare = w.replace(/[^\p{L}.&]/gu,'');
+      var minor = MINOR.indexOf(bare)>-1;
+      var r = (i===0 || i===words.length-1 || afterColon || !minor) ? capFirst(w) : w;
+      afterColon = /:$/.test(w);
+      return r;
+    }).join(' ');
+    return restoreProper(out);
+  }
+  function sentenceCaseSimple(raw){
+    var s = esc(raw); if(!s) return s;
+    var atStart = true;
+    var out = s.toLowerCase().split(/(\s+)/).map(function(tok){
+      if(/^\s+$/.test(tok)||tok==='') return tok;
+      var r = atStart ? capFirst(tok) : tok;
+      atStart = /[:?!.]$/.test(tok.replace(/["')\]]+$/,''));
+      return r;
+    }).join('');
+    return restoreProper(out);
+  }
+  function nameToken(t){
+    if(!miscased(t)) return t;
+    return t.toLowerCase().replace(/(^|[-'\u2019])(\p{L})/gu, function(m,p1,p2){ return p1+p2.toUpperCase(); });
+  }
+  function nameCaseSurname(fam){
+    return fam.split(/\s+/).map(function(part){
+      if(PARTICLES.indexOf(part.toLowerCase())>-1) return part.toLowerCase();
+      return nameToken(part);
+    }).join(' ');
+  }
+  // Corrects only clearly miscased values (ALL CAPS or all lowercase). brandSafe leaves
+  // short single-token names alone so acronyms and brands (TED, SAGE, BBC) survive.
+  function fixSourceCase(val, mode, brandSafe){
+    var v = esc(val); if(!v || !miscased(v)) return {text:v, corrected:false};
+    var tokenCount = v.split(/\s+/).filter(Boolean).length;
+    if(tokenCount<2){
+      if(brandSafe) return {text:v, corrected:false};
+      if(v.replace(/[^\p{L}]/gu,'').length<5) return {text:v, corrected:false};
+    }
+    var out = (mode==='title') ? toTitleCase(v) : sentenceCaseSimple(v);
+    return {text:out, corrected: out!==v};
+  }
+
+  function restoreProper(text){
+    PROPER_PHRASES.forEach(function(ph){
+      var re = new RegExp('(^|[^\\p{L}])('+escRe(ph)+')(?=[^\\p{L}]|$)','giu');
+      text = text.replace(re, function(m,p1){ return p1+ph; });
+    });
+    PROPER_WORDS.forEach(function(w){
+      var canon = PROPER_CANON[w.toLowerCase()] || w;
+      var re = new RegExp('(^|[^\\p{L}])('+escRe(w)+')(?=[^\\p{L}]|$)','giu');
+      text = text.replace(re, function(m,p1){ return p1+canon; });
+    });
+    return text;
+  }
+
+  function toSentenceCase(raw){
+    var title = esc(raw);
+    if(!title) return {text:'', changed:false, allCaps:false};
+    var shout = isAllCaps(title);
+    var work = shout ? title.toLowerCase() : title;
+    var atStart = true;
+    var outTokens = work.split(/(\s+)/).map(function(tok){
+      if(/^\s+$/.test(tok) || tok==='') return tok;
+      var core = tok.replace(/[^\p{L}]/gu,'');
+      var isAcr = !shout && /^\p{Lu}{2,}s?$/u.test(core);
+      var out;
+      if(isAcr){ out = tok; }
+      else if(atStart){ out = capFirst(tok.toLowerCase()); }
+      else { out = tok.toLowerCase(); }
+      atStart = /[:?!.]$/.test(tok.replace(/["')\]]+$/,''));
+      return out;
+    });
+    var res = restoreProper(outTokens.join(''));
+    return {text:res, changed: res !== title, allCaps: shout};
+  }
+
+  function looksOrg(name){ return ORG_HINTS.test(name); }
+
+  function splitNames(raw){
+    raw = esc(raw);
+    if(!raw) return [];
+    var parts = raw.split(/\n+/).map(esc).filter(Boolean);
+    if(parts.length===1){
+      parts = parts[0].split(/\s*;\s*|\s+&\s+|\s+and\s+/i).map(esc).filter(Boolean);
+    }
+    return parts;
+  }
+
+  function initialsFrom(givens){
+    return givens.split(/\s+/).filter(Boolean).map(function(part){
+      return part.split('-').map(function(p){ return p ? p.charAt(0).toUpperCase()+'.' : ''; }).join('-');
+    }).join(' ');
+  }
+
+  function parsePerson(name){
+    name = esc(name);
+    if(isAllCaps(name)) name = name.toLowerCase();
+    var family, givens;
+    if(name.indexOf(',')>-1){
+      var bits = name.split(',');
+      family = esc(bits[0]); givens = esc(bits.slice(1).join(' '));
+    } else {
+      var toks = name.split(/\s+/);
+      family = toks.pop();
+      while(toks.length && PARTICLES.indexOf(toks[toks.length-1].toLowerCase())>-1){
+        family = toks.pop()+' '+family;
+      }
+      givens = toks.join(' ');
+    }
+    var origFamily = family;
+    family = nameCaseSurname(family);
+    var initials = givens ? initialsFrom(givens) : '';
+    return {family:family, initials:initials, corrected: family!==origFamily};
+  }
+
+  // author surname-first joined string for reference list
+  function formatAuthorsRef(raw, mode){
+    var names = splitNames(raw);
+    if(!names.length) return {text:'', surnames:[], notes:[]};
+    var notes=[]; var orgCount=0; var personCount=0; var caseFixed=0;
+    var out = names.map(function(n){
+      if((mode==='orgable') && looksOrg(n)){
+        orgCount++;
+        var of = fixSourceCase(n,'title',true);
+        if(of.corrected) caseFixed++;
+        return {str:of.text, surname:of.text};
+      }
+      var p = parsePerson(n); personCount++;
+      if(p.corrected) caseFixed++;
+      var s = p.initials ? (p.family+', '+p.initials) : p.family;
+      return {str:s, surname:p.family};
+    });
+    var strs = out.map(function(o){return o.str;});
+    var joined;
+    var n = strs.length;
+    if(n===1) joined = strs[0];
+    else if(n===2) joined = strs[0]+', & '+strs[1];
+    else if(n<=20) joined = strs.slice(0,n-1).join(', ')+', & '+strs[n-1];
+    else joined = strs.slice(0,19).join(', ')+', ... '+strs[n-1];
+    if(personCount) notes.push({t:'Formatted '+personCount+' author name'+(personCount>1?'s':'')+' as surname then initials.', kind:'did'});
+    if(orgCount) notes.push({t:'Treated '+orgCount+' name'+(orgCount>1?'s':'')+' as an organisation (not inverted). Not right? Re-type it.', kind:'did'});
+    if(caseFixed) notes.push({t:'Corrected the capitalisation of '+caseFixed+' name'+(caseFixed>1?'s':'')+'.', kind:'did'});
+    return {text:joined, surnames:out.map(function(o){return o.surname;}), notes:notes, counts:{persons:personCount, orgs:orgCount, caseFixed:caseFixed}};
+  }
+
+  // editors: initials then surname
+  function formatEditorsRef(raw){
+    var names = splitNames(raw);
+    if(!names.length) return {text:'', label:'(Ed.)', notes:[]};
+    var strs = names.map(function(n){
+      var p = parsePerson(n);
+      return p.initials ? (p.initials+' '+p.family) : p.family;
+    });
+    var joined;
+    if(strs.length===1) joined = strs[0];
+    else if(strs.length===2) joined = strs[0]+' & '+strs[1];
+    else joined = strs.slice(0,strs.length-1).join(', ')+', & '+strs[strs.length-1];
+    return {text:joined, label: strs.length>1 ? '(Eds.)' : '(Ed.)', notes:[{t:'Formatted editor name'+(strs.length>1?'s':'')+' as initials then surname.', kind:'did'}]};
+  }
+
+  function fmtDoi(d){
+    d = esc(d); if(!d) return '';
+    d = d.replace(/^doi:\s*/i,'');
+    if(/^https?:\/\//i.test(d)) return d;
+    if(/^10\./.test(d)) return 'https://doi.org/'+d;
+    return d;
+  }
+  function fmtPages(p){ return esc(p).replace(/(\d)\s*[-\u2013\u2014]\s*(\d)/g,'$1\u2013$2'); }
+
+  function normaliseDate(raw){
+    var d = esc(raw);
+    if(!d) return {text:'', notes:[{t:'No date entered. Add one, or it will read as n.d.', kind:'ask'}], inText:'n.d.', reformatted:false};
+    if(/^n\.?\s?d\.?$/i.test(d) || /^no date$/i.test(d)) return {text:'n.d.', notes:[], inText:'n.d.', reformatted:false};
+    if(/^\d{4}$/.test(d)) return {text:d, notes:[], inText:d, reformatted:false};
+    // already "Year, Month [Day]"
+    var m = /^(\d{4}),?\s+([A-Za-z]+)\.?(?:\s+(\d{1,2}))?$/.exec(d);
+    if(m){ var t=m[1]+', '+capFirst(m[2].toLowerCase())+(m[3]?(' '+m[3]):''); return {text:t, notes: t!==d?[{t:'Read the date as '+t+'.', kind:'did'}]:[], inText:m[1], reformatted:(t!==d)}; }
+    // "Month Day, Year" or "Month Year"
+    m = /^([A-Za-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})$/.exec(d);
+    if(m){ var t2=m[3]+', '+capFirst(m[1].toLowerCase())+' '+m[2]; return {text:t2, notes:[{t:'Read the date as '+t2+'.', kind:'did'}], inText:m[3], reformatted:true}; }
+    m = /^([A-Za-z]+)\.?\s+(\d{4})$/.exec(d);
+    if(m){ var t3=m[2]+', '+capFirst(m[1].toLowerCase()); return {text:t3, notes:[{t:'Read the date as '+t3+'.', kind:'did'}], inText:m[2], reformatted:true}; }
+    // "Day Month Year"
+    m = /^(\d{1,2})\s+([A-Za-z]+)\.?\s+(\d{4})$/.exec(d);
+    if(m){ var t4=m[3]+', '+capFirst(m[2].toLowerCase())+' '+m[1]; return {text:t4, notes:[{t:'Read the date as '+t4+'.', kind:'did'}], inText:m[3], reformatted:true}; }
+    // ISO
+    m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+    if(m){ var mo=MONTHS[parseInt(m[2],10)-1]; var t5=m[1]+', '+mo+' '+parseInt(m[3],10); return {text:t5, notes:[{t:'Read the date as '+t5+'.', kind:'did'}], inText:m[1], reformatted:true}; }
+    var yr = (d.match(/\d{4}/)||[''])[0];
+    return {text:d, notes:[{t:'Kept the date as you typed it. Check the format (Year, or Year, Month Day).', kind:'ask'}], inText: yr||d, reformatted:false};
+  }
+
+  function endsSentence(s){ return /[?!.]$/.test(esc(s)); }
+
+  /* ---------- build a reference (segments + plain + notes + prompts + intext + sort key) ---------- */
+  function build(type, v){
+    var def = TYPES[type];
+    var segs = [], notes = [], prompts = [];
+    function seg(t, el, i){ if(t===undefined||t===null||t==='') return; segs.push({t:t, el:el||null, i:!!i}); }
+    function need(label, val){ if(!esc(val)) prompts.push('Add the '+label.toLowerCase()+'.'); }
+
+    var sortKey='', primarySurname='', inTextAuthor='', inTextNar='';
+    var meta = {sourceType:type, allCapsFixed:false, sentenceCaseApplied:false, dateReformatted:false, doiFormatted:false, names:0, orgs:0, namesCaseFixed:0};
+    function done(r){ r.meta = meta; r.promptsCount = (r.prompts||[]).length; return r; }
+    var date = normaliseDate(v.year);
+    notes = notes.concat(date.notes);
+    meta.dateReformatted = !!date.reformatted;
+
+    // sentence case for flagged fields
+    var titleVal = esc(v.title);
+    if(def.fields){
+      def.fields.forEach(function(f){
+        if(f.sc && f.k==='title'){
+          if(v['_sc_'+f.k]!==false){
+            var r = toSentenceCase(titleVal);
+            titleVal = r.text;
+            if(r.changed){ meta.sentenceCaseApplied = true; if(r.allCaps) meta.allCapsFixed = true; notes.push({t:(r.allCaps?'Corrected ALL CAPS and set the title to sentence case. ':'Set the title to sentence case. ')+'Check that names and places stayed capitalised; turn off auto sentence case if not.', kind:'did'}); }
+          }
+        }
+      });
+    }
+    var bookTitleVal = esc(v.booktitle);
+    if(type==='chapter' && v['_sc_booktitle']!==false && bookTitleVal){
+      var rb = toSentenceCase(bookTitleVal); bookTitleVal = rb.text;
+    }
+
+    if(type==='legislation'){
+      need('title of Act', v.title);
+      var legt = fixSourceCase(v.title,'title',false);
+      if(legt.corrected) notes.push({t:'Corrected the capitalisation of the Act title.', kind:'did'});
+      seg(legt.text, 'title', false);
+      var jur = esc(v.jurisdiction)||'NZ';
+      seg(' ('+jur+').', 'source', false);
+      if(esc(v.url)){ seg(' ', null); seg(esc(v.url), 'source'); } else { prompts.push('Add the URL to the Act on the legislation website.'); }
+      var lm = /^(.*\S)\s+(\d{4})\s*$/.exec(legt.text);
+      if(lm){ inTextAuthor='('+lm[1]+', '+lm[2]+')'; inTextNar=lm[1]+' ('+lm[2]+')'; sortKey=lm[1].toLowerCase(); }
+      else { sortKey = legt.text.toLowerCase(); inTextAuthor='('+legt.text+')'; inTextNar=legt.text; }
+      return done(assemble(segs, notes, prompts, sortKey, inTextAuthor, inTextNar));
+    }
+
+    // authors
+    var auth = formatAuthorsRef(v.author, def.author==='orgable'?'orgable':'person');
+    notes = notes.concat(auth.notes);
+    if(auth.counts){ meta.names=auth.counts.persons; meta.orgs=auth.counts.orgs; meta.namesCaseFixed=auth.counts.caseFixed; }
+    if(auth.text){
+      seg(auth.text, 'author');
+      seg(endsSentence(auth.text)?' ':'. ', null);
+      primarySurname = (auth.surnames[0]||'').toLowerCase();
+      var ns = auth.surnames.filter(Boolean);
+      if(ns.length===1) { inTextAuthor=ns[0]; inTextNar=ns[0]; }
+      else if(ns.length===2){ inTextAuthor=ns[0]+' & '+ns[1]; inTextNar=ns[0]+' and '+ns[1]; }
+      else if(ns.length>=3){ inTextAuthor=ns[0]+' et al.'; inTextNar=ns[0]+' et al.'; }
+    } else {
+      need('author', v.author);
+    }
+
+    // year
+    seg('('+(date.text||'n.d.')+').', 'year');
+    seg(' ', null);
+
+    if(type==='journal'){
+      need('article title', v.title); need('journal name', v.journal); need('volume', v.volume); need('pages', v.pages);
+      seg(titleVal, 'title'); seg(endsSentence(titleVal)?' ':'. ', null);
+      var jf = fixSourceCase(v.journal,'title',false);
+      if(jf.corrected) notes.push({t:'Corrected the capitalisation of the journal name.', kind:'did'});
+      var jv = jf.text + (esc(v.volume)?(', '+esc(v.volume)):'');
+      seg(jv, 'source', true);
+      if(esc(v.issue)) seg('('+esc(v.issue)+')', 'source', false);
+      var pg = fmtPages(v.pages);
+      seg(pg?(', '+pg+'.'):'.', 'source', false);
+      var doi = fmtDoi(v.doi);
+      if(doi){ seg(' ', null); seg(doi, 'source'); if(doi!==esc(v.doi)){ meta.doiFormatted=true; notes.push({t:'Formatted the DOI as a full link.', kind:'did'}); } }
+      if(!sortKey) sortKey = primarySurname;
+      return done(assemble(segs, notes, prompts, sortKey||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText));
+    }
+
+    if(type==='news'){
+      need('article title', v.title); need('newspaper or news site', v.newspaper);
+      seg(titleVal, 'title'); seg(endsSentence(titleVal)?' ':'. ', null);
+      var nwf = fixSourceCase(v.newspaper,'title',true);
+      if(nwf.corrected) notes.push({t:'Corrected the capitalisation of the news site name.', kind:'did'});
+      if(nwf.text){ seg(nwf.text, 'source', true); seg('.', 'source', false); }
+      need('URL', v.url);
+      if(esc(v.url)){ seg(' ', null); seg(esc(v.url), 'source'); }
+      return done(assemble(segs, notes, prompts, sortKey||primarySurname||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText));
+    }
+
+    if(type==='chapter'){
+      need('chapter title', v.title); need('editor', v.editor); need('book title', v.booktitle);
+      seg(titleVal, 'title'); seg(endsSentence(titleVal)?' ':'. ', null);
+      var ed = formatEditorsRef(v.editor); notes = notes.concat(ed.notes);
+      seg('In '+(ed.text||'')+' '+ed.label+', ', 'source', false);
+      seg(bookTitleVal, 'source', true);
+      var cpg = fmtPages(v.pages);
+      if(cpg){ var ppc = /[\u2013,]/.test(cpg) ? 'pp.' : 'p.'; seg(' ('+ppc+' '+cpg+')', 'source', false); }
+      seg('.', 'source', false);
+      if(esc(v.publisher)){ var pubc=fixSourceCase(v.publisher,'title',false); seg(' ', null); seg(pubc.text+'.', 'source'); }
+      var cdoi = fmtDoi(v.doi);
+      if(cdoi){ seg(' ', null); seg(cdoi, 'source'); if(cdoi!==esc(v.doi)) meta.doiFormatted=true; }
+      return done(assemble(segs, notes, prompts, sortKey||primarySurname||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText));
+    }
+
+    // book / webpage / report / image / video: italic work title
+    need('title', v.title);
+    seg(titleVal, 'title', true);
+    if(type==='image' && esc(v.medium)) seg(' ['+fixSourceCase(v.medium,'sentence',false).text+']', 'title', false);
+    else if(type==='image') prompts.push('Add the medium, e.g. Oil on canvas.');
+    if(type==='video') seg(' [Video]', 'title', false);
+    if(type==='book' && esc(v.edition)){ var ed2 = fixSourceCase(esc(v.edition).replace(/^\(|\)$/g,''),'sentence',false).text; seg(' ('+ed2+')', 'title', false); }
+    if(type==='report' && esc(v.reportno)){ var rn = esc(v.reportno); if(!/^\(/.test(rn)) rn='('+rn+')'; seg(' '+rn, 'source', false); }
+    seg('.', null, false);
+
+    if(type==='book'){
+      need('publisher', v.publisher);
+      if(esc(v.publisher)){ var bpc=fixSourceCase(v.publisher,'title',false); if(bpc.corrected) notes.push({t:'Corrected the capitalisation of the publisher.', kind:'did'}); seg(' ', null); seg(bpc.text+'.', 'source'); }
+    } else if(type==='webpage'){
+      if(esc(v.site)){ seg(' ', null); seg(fixSourceCase(v.site,'title',true).text+'.', 'source'); }
+      need('URL', v.url);
+      if(esc(v.url)){ seg(' ', null); seg(esc(v.url), 'source'); }
+    } else if(type==='report'){
+      need('URL', v.url);
+      if(esc(v.url)){ seg(' ', null); seg(esc(v.url), 'source'); }
+    } else if(type==='image'){
+      need('gallery or source', v.source);
+      if(esc(v.source)){ seg(' ', null); seg(fixSourceCase(v.source,'title',true).text+'.', 'source'); }
+      if(esc(v.url)){ seg(' ', null); seg(esc(v.url), 'source'); }
+    } else if(type==='video'){
+      need('platform', v.platform); need('URL', v.url);
+      if(esc(v.platform)){ seg(' ', null); seg(fixSourceCase(v.platform,'title',true).text+'.', 'source'); }
+      if(esc(v.url)){ seg(' ', null); seg(esc(v.url), 'source'); }
+    }
+    return done(assemble(segs, notes, prompts, sortKey||primarySurname||titleVal.toLowerCase(), inTextAuthor, inTextNar, date.inText));
+  }
+
+  function assemble(segs, notes, prompts, sortKey, itAuthor, itNar, yearShort){
+    var plain = segs.map(function(s){return s.t;}).join('').replace(/\s+/g,' ').trim();
+    var par='\u2014', nar='\u2014';
+    if(itAuthor){
+      if(/^\(/.test(itAuthor)){ par=itAuthor; nar=itNar; }
+      else if(yearShort){ par='('+itAuthor+', '+yearShort+')'; nar=itNar+' ('+yearShort+')'; }
+      else { par='('+itAuthor+', n.d.)'; nar=itNar+' (n.d.)'; }
+    }
+    return {segs:segs, plain:plain, notes:notes, prompts:prompts, sortKey:sortKey||'', intext:{par:par, nar:nar}};
+  }
+
+  /* ---------- state + DOM ---------- */
+  var state = {type:'book', values:{}};
+  var list = [];
+  var elFields = document.getElementById('fields');
+  var elOut = document.getElementById('out');
+  var elNotes = document.getElementById('notes');
+  var elItPar = document.getElementById('itPar');
+  var elItNar = document.getElementById('itNar');
+  var elAdd = document.getElementById('addBtn');
+  var elAddMsg = document.getElementById('addMsg');
+  var elListBody = document.getElementById('listBody');
+  var elListCount = document.getElementById('listCount');
+  var elCopyList = document.getElementById('copyList');
+  var elClearList = document.getElementById('clearList');
+  var elListMsg = document.getElementById('listMsg');
+  var timer = null;
+
+  /* ---------- on-device persistence (no server, no identity) ----------
+     Stores only the source type and the values the student typed, in this
+     browser's localStorage, so a reference list survives between sessions
+     on the same device. Wrapped in try/catch so blocked storage (private
+     browsing, strict iframe settings) never breaks the tool. */
+  var STORE_KEY = 'apa-ref-builder-list-v1';
+  var storageOK = (function(){
+    try{ localStorage.setItem('__apa_t','1'); localStorage.removeItem('__apa_t'); return true; }catch(e){ return false; }
+  })();
+  function saveList(){
+    if(!storageOK) return;
+    try{
+      localStorage.setItem(STORE_KEY, JSON.stringify(list.map(function(i){ return {type:i.type, values:i.values}; })));
+    }catch(e){}
+  }
+  function loadList(){
+    if(!storageOK) return;
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return;
+      var arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return;
+      arr.forEach(function(it){
+        if(!it || !TYPES[it.type]) return;
+        var r = build(it.type, it.values||{});
+        if(r.plain) list.push({type:it.type, values:it.values||{}, segs:r.segs, plain:r.plain, sortKey:r.sortKey});
+      });
+    }catch(e){}
+  }
+
+  function renderSegsInto(node, segs){
+    node.textContent = '';
+    segs.forEach(function(s){
+      var n;
+      if(s.el){
+        n = document.createElement('span'); n.className='seg seg-'+s.el;
+        if(s.i){ var em=document.createElement('em'); em.textContent=s.t; n.appendChild(em); }
+        else n.textContent=s.t;
+      } else {
+        if(s.i){ n=document.createElement('em'); n.textContent=s.t; }
+        else n=document.createTextNode(s.t);
+      }
+      node.appendChild(n);
+    });
+  }
+
+  function refToHtml(segs){
+    var html='';
+    segs.forEach(function(s){
+      var t = s.t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      html += s.i ? ('<em>'+t+'</em>') : t;
+    });
+    return html.replace(/\s+/g,' ').trim();
+  }
+
+  function update(){
+    var r = build(state.type, state.values);
+    if(r.plain){ renderSegsInto(elOut, r.segs); }
+    else { elOut.textContent = 'Type the details on the left to see the formatted reference here.'; }
+    elItPar.textContent = r.intext.par;
+    elItNar.textContent = r.intext.nar;
+
+    elNotes.textContent='';
+    if(r.notes.length || r.prompts.length){
+      if(r.notes.length){
+        var l1=document.createElement('p'); l1.className='lab'; l1.textContent='What the tool did'; elNotes.appendChild(l1);
+        var u1=document.createElement('ul');
+        r.notes.forEach(function(n){ var li=document.createElement('li'); li.className='did'; li.textContent=n.t; u1.appendChild(li); });
+        elNotes.appendChild(u1);
+      }
+      if(r.prompts.length){
+        var l2=document.createElement('p'); l2.className='lab'; l2.textContent='Add or check'; elNotes.appendChild(l2);
+        var u2=document.createElement('ul');
+        r.prompts.forEach(function(p){ var li=document.createElement('li'); li.className='ask'; li.textContent=p; u2.appendChild(li); });
+        elNotes.appendChild(u2);
+      }
+    }
+    elAdd.disabled = !r.plain || !esc(state.values.title);
+    return r;
+  }
+
+  function renderFields(){
+    var def = TYPES[state.type];
+    elFields.textContent='';
+    def.fields.forEach(function(f){
+      var wrap=document.createElement('div'); wrap.className='field';
+      var lab=document.createElement('label'); lab.setAttribute('for','f_'+f.k);
+      var dot=document.createElement('span'); dot.className='dot '+f.el; dot.setAttribute('aria-hidden','true'); lab.appendChild(dot);
+      lab.appendChild(document.createTextNode(f.label));
+      if(f.opt){ var o=document.createElement('span'); o.className='opt'; o.textContent='(optional)'; lab.appendChild(o); }
+      var inp = f.area ? document.createElement('textarea') : document.createElement('input');
+      if(!f.area) inp.type='text';
+      inp.id='f_'+f.k; inp.placeholder=f.ph||''; inp.value=state.values[f.k]||'';
+      inp.addEventListener('input', function(){
+        state.values[f.k]=inp.value; clearTimeout(timer); timer=setTimeout(update,220);
+      });
+      wrap.appendChild(lab); wrap.appendChild(inp);
+      if(f.hint){ var h=document.createElement('p'); h.className='hint'; h.textContent=f.hint; wrap.appendChild(h); }
+      if(f.sc){
+        var sc=document.createElement('label'); sc.className='scrow';
+        var cb=document.createElement('input'); cb.type='checkbox'; cb.checked = state.values['_sc_'+f.k]!==false; cb.id='sc_'+f.k;
+        cb.addEventListener('change', function(){ state.values['_sc_'+f.k]=cb.checked; update(); emit('sentence_case_toggled', {source_type:state.type, sentence_case_on:cb.checked}); });
+        sc.appendChild(cb); sc.appendChild(document.createTextNode('Auto sentence case'));
+        wrap.appendChild(sc);
+      }
+      elFields.appendChild(wrap);
+    });
+    update();
+  }
+
+  function setType(t){
+    state.type=t; state.values={};
+    Array.prototype.forEach.call(document.querySelectorAll('.typebar button'), function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-type')===t?'true':'false');
+    });
+    renderFields(); elAddMsg.textContent='';
+  }
+
+  function renderList(){
+    list.sort(function(a,b){
+      if(a.sortKey<b.sortKey) return -1; if(a.sortKey>b.sortKey) return 1; return 0;
+    });
+    elListBody.textContent='';
+    if(!list.length){
+      var e=document.createElement('p'); e.className='empty'; e.textContent='Sources you add appear here in alphabetical order, with hanging indents.';
+      elListBody.appendChild(e);
+      elListCount.textContent='No sources added yet.';
+      elCopyList.disabled=true; elClearList.disabled=true; saveList(); return;
+    }
+    list.forEach(function(item, idx){
+      var row=document.createElement('div'); row.className='refitem';
+      var ref=document.createElement('div'); ref.className='ref'; renderSegsInto(ref, item.segs);
+      var tools=document.createElement('div'); tools.className='tools';
+      var edit=document.createElement('button'); edit.type='button'; edit.textContent='Edit';
+      edit.setAttribute('aria-label','Edit this reference and remove it from the list');
+      edit.addEventListener('click', function(){
+        state.type=item.type; state.values=JSON.parse(JSON.stringify(item.values));
+        Array.prototype.forEach.call(document.querySelectorAll('.typebar button'), function(b){
+          b.setAttribute('aria-pressed', b.getAttribute('data-type')===item.type?'true':'false');
+        });
+        renderFields();
+        list.splice(idx,1); renderList();
+        emit('reference_edited', {source_type:item.type, references_in_list:list.length});
+        window.scrollTo({top:0, behavior:'smooth'});
+      });
+      var rem=document.createElement('button'); rem.type='button'; rem.textContent='Remove';
+      rem.setAttribute('aria-label','Remove this reference from the list');
+      rem.addEventListener('click', function(){ var st=item.type; list.splice(idx,1); renderList(); emit('reference_removed', {source_type:st, references_in_list:list.length}); elListMsg.textContent='Reference removed.'; setTimeout(function(){elListMsg.textContent='';},1500); });
+      tools.appendChild(edit); tools.appendChild(rem);
+      row.appendChild(ref); row.appendChild(tools);
+      elListBody.appendChild(row);
+    });
+    elListCount.textContent = list.length+' source'+(list.length>1?'s':'')+', in alphabetical order.';
+    elCopyList.disabled=false; elClearList.disabled=false;
+    saveList();
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.typebar button'), function(b){
+    b.addEventListener('click', function(){ var t=b.getAttribute('data-type'); setType(t); emit('source_type_selected', {source_type:t}); });
+  });
+
+  elAdd.addEventListener('click', function(){
+    var r = update();
+    if(!r.plain || !esc(state.values.title)) return;
+    list.push({type:state.type, values:JSON.parse(JSON.stringify(state.values)), segs:r.segs, plain:r.plain, sortKey:r.sortKey});
+    renderList();
+    var m = r.meta || {};
+    emit('reference_added', {
+      source_type: state.type,
+      all_caps_fixed: !!m.allCapsFixed,
+      sentence_case_applied: !!m.sentenceCaseApplied,
+      sentence_case_on: state.values['_sc_title'] !== false,
+      date_reformatted: !!m.dateReformatted,
+      doi_formatted: !!m.doiFormatted,
+      author_names: m.names || 0,
+      org_authors: m.orgs || 0,
+      names_case_fixed: m.namesCaseFixed || 0,
+      prompts_count: (r.prompts || []).length,
+      references_in_list: list.length
+    });
+    elAddMsg.textContent='Added to your list.';
+    setTimeout(function(){elAddMsg.textContent='';},1800);
+    state.values={}; renderFields();
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', function(){ state.values={}; renderFields(); });
+
+  elClearList.addEventListener('click', function(){
+    if(!list.length) return;
+    var n=list.length; list.length=0; renderList(); emit('list_cleared', {references_in_list:n}); elListMsg.textContent='List cleared.'; setTimeout(function(){elListMsg.textContent='';},1500);
+  });
+
+  elCopyList.addEventListener('click', function(){
+    if(!list.length) return;
+    emit('list_copied', {copied_count:list.length, references_in_list:list.length});
+    var plain = list.map(function(i){return i.plain;}).join('\n\n');
+    var html = '<div>'+list.map(function(i){
+      return '<p style="padding-left:2.2em;text-indent:-2.2em;margin:0 0 .6em;">'+refToHtml(i.segs)+'</p>';
+    }).join('')+'</div>';
+    function doneRich(){ elListMsg.textContent='Copied. Paste into your document; the italics carry over.'; setTimeout(function(){elListMsg.textContent='';},3000); }
+    function donePlain(){ elListMsg.textContent='Copied as plain text. Re-apply italics to journal and report titles after pasting.'; setTimeout(function(){elListMsg.textContent='';},4000); }
+    if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+      var item = new ClipboardItem({'text/html': new Blob([html],{type:'text/html'}), 'text/plain': new Blob([plain],{type:'text/plain'})});
+      navigator.clipboard.write([item]).then(doneRich, function(){ plainCopy(plain); donePlain(); });
+    } else if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(plain).then(donePlain, function(){ plainCopy(plain); donePlain(); });
+    } else { plainCopy(plain); donePlain(); }
+  });
+  function plainCopy(text){
+    var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px';
+    document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta);
+  }
+
+  setType('book');
+  loadList();
+  if(list.length) renderList();
+  if(storageOK){ var sn=document.getElementById('savedNote'); if(sn) sn.style.display='inline'; }
+  if(TELEMETRY.enabled && TELEMETRY.endpoint){
+    var un = document.getElementById('usageNotice');
+    if(un){ un.textContent = 'This tool records anonymous usage to help improve it. It logs which actions you take and which formatting corrections were applied, never the names, titles, or URLs you type. No login or identity is attached.'; un.style.display='block'; }
+  }
+  emit('session_start', {});
+})();
+</script>
+</body>
+</html>
